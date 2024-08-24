@@ -11,7 +11,14 @@ apt install -y libbpf-dev libxdp-dev
 apt install -y xdp-tools
 apt install -y unzip
 apt install -y wget
+apt install -y tar
 
+# Consul Installation
 wget https://releases.hashicorp.com/consul/1.19.1/consul_1.19.1_linux_amd64.zip
 unzip consul_1.19.1_linux_amd64.zip
 mv ./consul /usr/bin
+
+# GO Installation
+wget https://go.dev/dl/go1.23.0.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
