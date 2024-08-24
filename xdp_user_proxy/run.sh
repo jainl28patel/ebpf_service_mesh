@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Build the project
-make
+# Start Consul Client agent
+consul agent -config-file=./client-config.json > /tmp/consul-client.log 2>&1 &
 
-# Check if build was successful
-if [ $? -ne 0 ]; then
-    echo "Build failed!"
-    exit 1
-fi
+# Load XDP program here / Start GO client agent
+
+# Run exe
+./app/udp_echo_server

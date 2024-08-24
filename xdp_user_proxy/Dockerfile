@@ -12,6 +12,9 @@ COPY . .
 
 # Make the run.sh script executable
 RUN chmod +x run.sh
+RUN chmod +x build.sh
 
 # Execute the run.sh script to install dependencies and build the application
-RUN ./run.sh
+RUN ./build.sh
+
+CMD [ "./run.sh" ]

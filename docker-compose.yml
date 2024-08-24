@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   server:
     build:
@@ -8,7 +6,7 @@ services:
     container_name: server-test
     privileged: true
     networks:
-      - server_network
+      - service_mesh
     volumes:
       - shared_tmp:/tmp
 
@@ -23,27 +21,27 @@ services:
     volumes:
       - shared_tmp:/tmp
 
-  service-2:
-    build:
-      context: ./xdp_user_proxy
-      dockerfile: Dockerfile
-    container_name: service-2
-    privileged: true
-    networks:
-      - service_mesh
-    volumes:
-      - shared_tmp:/tmp
+  # service-2:
+  #   build:
+  #     context: ./xdp_user_proxy
+  #     dockerfile: Dockerfile
+  #   container_name: service-2
+  #   privileged: true
+  #   networks:
+  #     - service_mesh
+  #   volumes:
+  #     - shared_tmp:/tmp
 
-  service-3:
-    build:
-      context: ./xdp_user_proxy
-      dockerfile: Dockerfile
-    container_name: service-3
-    privileged: true
-    networks:
-      - service_mesh
-    volumes:
-      - shared_tmp:/tmp
+  # service-3:
+  #   build:
+  #     context: ./xdp_user_proxy
+  #     dockerfile: Dockerfile
+  #   container_name: service-3
+  #   privileged: true
+  #   networks:
+  #     - service_mesh
+  #   volumes:
+  #     - shared_tmp:/tmp
 
 volumes:
   shared_tmp:
