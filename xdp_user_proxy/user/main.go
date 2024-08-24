@@ -26,7 +26,7 @@ func main() {
 	// 	log.Fatal("Removing memlock:", err)
 	// }
 
-	spec, err := ebpf.LoadCollectionSpec("../kernel/xdp_main")
+	spec, err := ebpf.LoadCollectionSpec("/app/kernel/xdp_main")
 	if err != nil {
 		panic(err)
 	}
@@ -88,17 +88,22 @@ func main() {
 func startServer(dataChannel chan Data) {
 	r := gin.Default()
 
-	r.POST("/data", func(c *gin.Context) {
-		var data Data
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+	// r.POST("/data", func(c *gin.Context) {
+	// 	var data Data
+	// 	if err := c.ShouldBindJSON(&data); err != nil {
+	// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
 
-		// Send the data to the channel
-		dataChannel <- data
+	// 	// Send the data to the channel
+	// 	dataChannel <- data
 
-		c.JSON(http.StatusOK, gin.H{"status": "data received"})
+	// 	c.JSON(http.StatusOK, gin.H{"status": "data received"})
+	// })
+
+	r.GET("/services", func(ctx *gin.Context) {
+		fmt.Println("--------- GOT UPDATE MESSAGE ---------")
+		ctx.JSON(http.StatusOK, gin.H{"status": "data received"})
 	})
 
 	// Start the server

@@ -1,5 +1,5 @@
 # Use an official Ubuntu image as the base image
-FROM anakin007/consul-xdp-ubuntu:1.0
+FROM anakin007/service-mesh:latest
 
 # Set environment variables to non-interactive (avoid prompts during package installation)
 ENV DEBIAN_FRONTEND=noninteractive

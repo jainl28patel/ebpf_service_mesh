@@ -17,3 +17,4 @@ kernel:
 clean:
 	$(MAKE) -C app clean
 	$(MAKE) -C kernel clean
+	rm -rf ./user/user-agent

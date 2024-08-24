@@ -1,7 +1,7 @@
 ### Custom Docker image
-* To reduce dev latency and install things
+* To reduce dev latency and install things. Used as base image by all containers
 ```bash
-docker push anakin007/consul-xdp-ubuntu:1.0
+docker pull anakin007/service-mesh:latest
 ```
 
 ### Running the Cluster

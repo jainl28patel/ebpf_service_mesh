@@ -18,5 +18,11 @@
       "interval": "10s",
       "timeout": "1s"
     }
-  }
+  },
+  "watches" : [
+    {
+      "type" : "services",
+      "args" : ["/app/inform.sh"]
+    }    
+  ]
 }
