@@ -1,5 +1,5 @@
 {
-  "node_name": "consul-client-1",
+  "node_name": "${SERVICE_NAME}",
   "server": false,
   "datacenter": "dc1",
   "data_dir": "consul/data",

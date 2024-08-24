@@ -1,5 +1,5 @@
 {
-  "node_name": "consul-server",
+  "node_name": "${SERVICE_NAME}",
   "server": true,
   "bootstrap": true,
   "ui_config": {
