@@ -1,0 +1,18 @@
+{
+  "node_name": "consul-server",
+  "server": true,
+  "bootstrap": true,
+  "ui_config": {
+    "enabled": false
+  },
+  "datacenter": "dc1",
+  "data_dir": "consul/data",
+  "log_level": "DEBUG",
+  "addresses": {
+    "http": "0.0.0.0"
+  },
+  "enable_local_script_checks" : true,
+  "connect": {
+    "enabled": true
+  }
+}

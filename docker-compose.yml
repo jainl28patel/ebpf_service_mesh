@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./control_plane
+      dockerfile: Dockerfile
+    container_name: server-test
+    privileged: true
+    networks:
+      - server_network
+    volumes:
+      - shared_tmp:/tmp
+
+  service-1:
+    build:
+      context: ./xdp_user_proxy
+      dockerfile: Dockerfile
+    container_name: service-1
+    privileged: true
+    networks:
+      - service_mesh
+    volumes:
+      - shared_tmp:/tmp
+
+  service-2:
+    build:
+      context: ./xdp_user_proxy
+      dockerfile: Dockerfile
+    container_name: service-2
+    privileged: true
+    networks:
+      - service_mesh
+    volumes:
+      - shared_tmp:/tmp
+
+  service-3:
+    build:
+      context: ./xdp_user_proxy
+      dockerfile: Dockerfile
+    container_name: service-3
+    privileged: true
+    networks:
+      - service_mesh
+    volumes:
+      - shared_tmp:/tmp
+
+volumes:
+  shared_tmp:
+
+networks:
+  service_mesh:
+    driver: bridge
