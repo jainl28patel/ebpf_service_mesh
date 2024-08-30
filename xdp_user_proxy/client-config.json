@@ -6,8 +6,8 @@
   "log_level": "DEBUG",
   "retry_join": ["server"],
   "service": {
-    "id": "dns",
-    "name": "dns",
+    "id": "${SERVICE_NAME}",
+    "name": "${SERVICE_NAME}",
     "tags": ["primary"],
     "address": "localhost",
     "port": 8600,
