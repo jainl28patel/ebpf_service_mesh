@@ -1,17 +1,14 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/binary"
 	"fmt"
-	"io"
 	"log"
 	"net"
-	"net/http"
 	"time"
 
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
-	"github.com/gin-gonic/gin"
 )
 
 // Data struct to hold incoming JSON data
@@ -25,6 +22,14 @@ type ServiceInfo struct {
 	Address        string
 	ServiceAddress string
 	ServicePort    int
+}
+
+type catalogKey struct {
+	Hostname [256]byte
+}
+
+type catalogValue struct {
+	ServiceIP uint32
 }
 
 func main() {
@@ -47,9 +52,13 @@ func main() {
 	}
 	defer coll.Close()
 
-	prog := coll.Programs["xdp_prog_simple"]
+	prog := coll.Programs["tc_egress"]
+	service_catalog := coll.Maps["service_catalog"]
 	if prog == nil {
-		panic("No program named 'xdp_prog_simple' found in collection")
+		panic("No program named 'tc_egress' found in collection")
+	}
+	if service_catalog == nil {
+		panic("No map named 'service_catalog' found in collection")
 	}
 
 	iface := "lo"
@@ -58,16 +67,13 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Failed to get interface %s: %v\n", iface, err))
 	}
-	opts := link.XDPOptions{
-		Program:   prog,
-		Interface: iface_idx.Index,
-		// Flags is one of XDPAttachFlags (optional).
-	}
 
-	lnk, err := link.AttachXDP(opts)
-	if err != nil {
-		panic(err)
-	}
+	lnk, err := link.AttachTCX(link.TCXOptions{
+		Interface: iface_idx.Index,
+		Program:   prog,
+		Attach:    ebpf.AttachTCXEgress,
+	})
+
 	defer lnk.Close()
 
 	fmt.Println("Successfully loaded and attached BPF program.")
@@ -84,105 +90,53 @@ func main() {
 	// DEBUG := Print the service map
 	for serviceName, info := range serviceMap {
 		fmt.Printf("Service: %s, Address: %s, ServiceAddress: %s, ServicePort: %d\n", serviceName, info.Address, info.ServiceAddress, info.ServicePort)
+
+		// step-1 : convert IP to desired form
+		ip := net.ParseIP(info.Address).To4()
+		if ip == nil {
+			fmt.Println("Invalid IP address")
+			return
+		}
+		serviceIP := binary.BigEndian.Uint32(ip) // Convert IP to uint32 in network byte order
+
+		// step-2 : convert serviceName to required form
+		var key catalogKey
+		copy(key.Hostname[:], serviceName)
+
+		// Step 3: Prepare value (service IP)
+		value := catalogValue{
+			ServiceIP: serviceIP,
+		}
+
+		if err := service_catalog.Put(&key, &value); err != nil {
+			fmt.Errorf("Error in storing service %s to the map :: %s", serviceName, err)
+		} else {
+			fmt.Printf("serviceip :: %d --  key :: %s \n", serviceIP, key.Hostname)
+		}
 	}
 
-	for {
-		// Handle map configuration and handling incoming information
+	// Create key and value holders
+	var key catalogKey
+	var value catalogValue
+
+	iterator := service_catalog.Iterate()
+	for iterator.Next(&key, &value) {
+		// Convert the service name (key) to a Go string
+		serviceName := string(key.Hostname[:])
+		// Null terminate the service name if there are extra zeros
+		serviceName = serviceName[:len(serviceName)-len(serviceName)+int(len(serviceName[:]))]
+
+		// Print the service name and IP
+		fmt.Printf("Service: %s, IP Address: %d\n", serviceName, value.ServiceIP)
+	}
+
+	// Check if there was an error during iteration
+	if err := iterator.Err(); err != nil {
+		log.Fatalf("Failed to iterate over map: %v", err)
 	}
 
 	// Main goroutine handles data from the channel
-}
+	for {
 
-func getServiceCatalog() (map[string]ServiceInfo, error) {
-	// Make the initial GET request to fetch the service catalog
-	res, err := http.Get("http://127.0.0.1:8500/v1/catalog/services")
-	if err != nil {
-		log.Fatalf("unable to fetch service catalog: %v", err)
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		log.Fatalf("unexpected status code: %d", res.StatusCode)
-	}
-
-	// Read and unmarshal the JSON response
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		log.Fatalf("unable to read response body: %v", err)
-	}
-
-	var services map[string]interface{}
-	err = json.Unmarshal(body, &services)
-	if err != nil {
-		log.Fatalf("unable to unmarshal JSON response: %v", err)
-	}
-
-	// Create a map to hold the service information
-	serviceMap := make(map[string]ServiceInfo)
-
-	// Iterate over the keys and make individual requests
-	for key := range services {
-		// Make a GET request for each service
-		res, err := http.Get("http://127.0.0.1:8500/v1/catalog/service/" + key)
-		if err != nil {
-			log.Printf("error fetching service %s: %v", key, err)
-			continue
-		}
-		defer res.Body.Close()
-
-		// Read the response body
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			log.Printf("error reading service response for %s: %v", key, err)
-			continue
-		}
-
-		// Unmarshal the response body into a slice of maps
-		var tempdata []map[string]interface{}
-		err = json.Unmarshal(body, &tempdata)
-		if err != nil {
-			log.Printf("error unmarshaling JSON for service %s: %v", key, err)
-			continue
-		}
-
-		// Extract and store Address, ServiceAddress, and ServicePort
-		if len(tempdata) > 0 {
-			serviceInfo := ServiceInfo{}
-
-			// Extract Address
-			if address, ok := tempdata[0]["Address"].(string); ok {
-				serviceInfo.Address = address
-			}
-
-			// Extract ServiceAddress
-			if serviceAddress, ok := tempdata[0]["ServiceAddress"].(string); ok {
-				serviceInfo.ServiceAddress = serviceAddress
-			}
-
-			// Extract ServicePort
-			if servicePort, ok := tempdata[0]["ServicePort"].(float64); ok {
-				serviceInfo.ServicePort = int(servicePort)
-			}
-
-			// Store the service information in the map
-			serviceMap[key] = serviceInfo
-		}
-	}
-
-	return serviceMap, nil
-}
-
-// Function to start the Gin server
-func startServer(dataChannel chan Data) {
-	r := gin.Default()
-
-	r.GET("/services", func(ctx *gin.Context) {
-		fmt.Println("--------- GOT UPDATE MESSAGE ---------")
-		ctx.JSON(http.StatusOK, gin.H{"status": "data received"})
-	})
-
-	// Start the server
-	if err := r.Run(":8080"); err != nil {
-		log.Fatalf("failed to start server: %v", err)
 	}
 }

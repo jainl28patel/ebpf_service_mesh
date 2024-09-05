@@ -10,7 +10,9 @@ services:
     networks:
       - service_mesh
     volumes:
-      - shared_tmp:/tmp
+      - /tmp:/tmp
+      - /sys/kernel:/sys/kernel:ro
+      - /sys/fs/bpf/:/sys/fs/bpf/
 
   service-1:
     build:
@@ -23,7 +25,9 @@ services:
     networks:
       - service_mesh
     volumes:
-      - shared_tmp:/tmp
+      - /tmp:/tmp
+      - /sys/kernel:/sys/kernel:ro
+      - /sys/fs/bpf/:/sys/fs/bpf/
 
   service-2:
     build:
@@ -36,7 +40,9 @@ services:
     networks:
       - service_mesh
     volumes:
-      - shared_tmp:/tmp
+      - /tmp:/tmp
+      - /sys/kernel:/sys/kernel:ro
+      - /sys/fs/bpf/:/sys/fs/bpf/
 
   service-3:
     build:
@@ -49,10 +55,9 @@ services:
     networks:
       - service_mesh
     volumes:
-      - shared_tmp:/tmp
-
-volumes:
-  shared_tmp:
+      - /tmp:/tmp
+      - /sys/kernel:/sys/kernel:ro
+      - /sys/fs/bpf/:/sys/fs/bpf/
 
 networks:
   service_mesh:
