@@ -31,10 +31,6 @@ int tc_egress(struct __sk_buff *skb) {
                         iph->saddr, iph->daddr, iph->protocol);
             bpf_printk("PORT_SOURCE=%u, PORT_DESTINATION=%u", bpf_ntohs(udh->source), bpf_ntohs(udh->dest));
 
-            // chaging the destination port and ip
-            // iph->daddr = 16777343;
-            // udh->dest = bpf_htons(8600);
-
             // bpf_printk("[CHANGED] TC_EGRESS: src_ip=%u, dest_ip=%u, protocol=%u", 
             //             iph->saddr, iph->daddr, iph->protocol);
             // bpf_printk("[CHANGED] PORT_SOURCE=%u, PORT_DESTINATION=%u\n", bpf_ntohs(udh->source), bpf_ntohs(udh->dest));
@@ -54,7 +50,7 @@ int tc_egress(struct __sk_buff *skb) {
                 // Print the service IP from the map value
                 bpf_printk("Service IP: %u\n", bpf_ntohs(value->service_ip));
             } else {
-                bpf_printk("No value found for key :%u \n", bpf_ntohs(value->service_ip));
+                bpf_printk("No value found for key :%u \n", (value->service_ip));
             }
 
         }

@@ -12,6 +12,8 @@ apt install -y xdp-tools
 apt install -y unzip
 apt install -y wget
 apt install -y tar
+apt install -y dnsmasq
+apt install -y dnsutils
 
 # Consul Installation
 wget https://releases.hashicorp.com/consul/1.19.1/consul_1.19.1_linux_amd64.zip

@@ -105,13 +105,13 @@ func main() {
 
 		// Step 3: Prepare value (service IP)
 		value := catalogValue{
-			ServiceIP: serviceIP,
+			ServiceIP: uint32(serviceIP),
 		}
 
 		if err := service_catalog.Put(&key, &value); err != nil {
-			fmt.Errorf("Error in storing service %s to the map :: %s", serviceName, err)
+			fmt.Printf("Error in storing service %s to the map :: %s", serviceName, err)
 		} else {
-			fmt.Printf("serviceip :: %d --  key :: %s \n", serviceIP, key.Hostname)
+			fmt.Printf("serviceip :: %d --  key :: %s \n", value.ServiceIP, key.Hostname)
 		}
 	}
 
