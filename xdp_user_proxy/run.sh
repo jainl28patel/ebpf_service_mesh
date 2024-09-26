@@ -12,5 +12,10 @@ mount -t bpf bpf /sys/fs/bpf/ || die "Unable to mount /sys/fs/bpf inside test en
 # Start Consul Client agent
 consul agent -config-file=./client-config-new.json > /tmp/consul-client.log 2>&1 &
 
+# TODO : DELETE BELOW LINE
+apt update
+apt install -y linux-tools-common linux-tools-generic linux-tools-$(uname -r)
+apt install -y dnsutils
+
 # Run exe
 ./app/udp_echo_server

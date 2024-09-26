@@ -1,4 +1,5 @@
 #include "xdp_main.h"
+#include "dns.h"
 
 SEC("tc")
 int tc_egress(struct __sk_buff *skb) {
@@ -31,32 +32,52 @@ int tc_egress(struct __sk_buff *skb) {
                         iph->saddr, iph->daddr, iph->protocol);
             bpf_printk("PORT_SOURCE=%u, PORT_DESTINATION=%u", bpf_ntohs(udh->source), bpf_ntohs(udh->dest));
 
-            // chaging the destination port and ip
-            // iph->daddr = 16777343;
-            // udh->dest = bpf_htons(8600);
+            if(bpf_ntohs(udh->source) != 53) return TC_ACT_OK;
 
-            // bpf_printk("[CHANGED] TC_EGRESS: src_ip=%u, dest_ip=%u, protocol=%u", 
-            //             iph->saddr, iph->daddr, iph->protocol);
-            // bpf_printk("[CHANGED] PORT_SOURCE=%u, PORT_DESTINATION=%u\n", bpf_ntohs(udh->source), bpf_ntohs(udh->dest));
+            
+            // Parsing for the DNS header
+            // Header size : 12bytes
 
-            // read the map and print value
-            struct catalog_key key;
-            __builtin_memset(&key, 0, sizeof(key));  // Initialize key to zero
-            __builtin_memcpy(key.hostname, "consul", sizeof("consul"));  // Copy the key "hello" into the struct
-
-            bpf_printk("Looking up key: %s\n", key.hostname);
-
-            // Look up value from map
-            struct catalog_value *value;
-            value = bpf_map_lookup_elem(&service_catalog, &key);
-
-            if (value) {
-                // Print the service IP from the map value
-                bpf_printk("Service IP: %u\n", bpf_ntohs(value->service_ip));
-            } else {
-                bpf_printk("No value found for key :%u \n", bpf_ntohs(value->service_ip));
+            void* ptr = data + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr) + sizeof(struct DNS_HEADER);
+            if (ptr > data_end) {
+                bpf_printk("Size exceede");
+                return TC_ACT_OK;
             }
+            // char* last_octet;
+            // int redirect = 0;
 
+            bpf_printk("Entering the loop");
+            
+            for(int no_of_octet = 0; no_of_octet < MAX_OCTET; no_of_octet++)
+            {
+                if ((void *)(ptr + 1) > data_end) {
+                    return TC_ACT_OK;
+                }
+                unsigned char size = *((char*)(ptr));
+
+                bpf_printk("size : %d", (unsigned int)(size));
+
+                if (size == 0) {
+                    break;  // End of the domain name string
+                }
+
+                if ((void*)(ptr + 1 + size) > data_end) {
+                    return TC_ACT_OK;
+                }
+
+                char* octet = (char*)(ptr + 1);
+
+                for (int sz = 0; sz < MAX_OCTET_SIZE; sz++) {
+                    if ((void*)(octet + sz + 1) > data_end) {
+                        return TC_ACT_OK;  // Avoid buffer overrun
+                    }
+                    bpf_printk("printing %d : %c", no_of_octet, octet[sz]);
+                    if(sz==size-1) break;
+                }
+
+                ptr += 1 + size;  // Move to the next octet
+
+            }
         }
     }
 
