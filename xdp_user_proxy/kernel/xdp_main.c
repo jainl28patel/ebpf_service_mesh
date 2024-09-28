@@ -32,7 +32,7 @@ int tc_egress(struct __sk_buff *skb) {
                         iph->saddr, iph->daddr, iph->protocol);
             bpf_printk("PORT_SOURCE=%u, PORT_DESTINATION=%u", bpf_ntohs(udh->source), bpf_ntohs(udh->dest));
 
-            if(bpf_ntohs(udh->source) != 53) return TC_ACT_OK;
+            if(iph->daddr != 184549503) return TC_ACT_OK;
 
             
             // Parsing for the DNS header
@@ -40,13 +40,12 @@ int tc_egress(struct __sk_buff *skb) {
 
             void* ptr = data + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr) + sizeof(struct DNS_HEADER);
             if (ptr > data_end) {
-                bpf_printk("Size exceede");
                 return TC_ACT_OK;
             }
-            // char* last_octet;
-            // int redirect = 0;
 
-            bpf_printk("Entering the loop");
+            const char* subdomain = "consul";
+            int len = 6;
+            int redirect = 0;
             
             for(int no_of_octet = 0; no_of_octet < MAX_OCTET; no_of_octet++)
             {
@@ -55,10 +54,10 @@ int tc_egress(struct __sk_buff *skb) {
                 }
                 unsigned char size = *((char*)(ptr));
 
-                bpf_printk("size : %d", (unsigned int)(size));
-
                 if (size == 0) {
                     break;  // End of the domain name string
+                } else {
+                    redirect = 0;
                 }
 
                 if ((void*)(ptr + 1 + size) > data_end) {
@@ -67,17 +66,32 @@ int tc_egress(struct __sk_buff *skb) {
 
                 char* octet = (char*)(ptr + 1);
 
-                for (int sz = 0; sz < MAX_OCTET_SIZE; sz++) {
-                    if ((void*)(octet + sz + 1) > data_end) {
-                        return TC_ACT_OK;  // Avoid buffer overrun
+                if(size == len)
+                {
+                    int same = 1;
+                    for (int sz = 0; sz < len; sz++) {
+                        if ((void*)(octet + sz + 1) > data_end) {
+                            return TC_ACT_OK;  // Avoid buffer overrun
+                        }
+                        if(octet[sz]!=subdomain[sz]) {
+                            same = 0;
+                            break;
+                        }
                     }
-                    bpf_printk("printing %d : %c", no_of_octet, octet[sz]);
-                    if(sz==size-1) break;
+                    if(same==1) {
+                        redirect = 1;
+                    }
                 }
-
                 ptr += 1 + size;  // Move to the next octet
-
             }
+
+            if(redirect==0) {
+                return TC_ACT_OK;
+            }
+
+            // redirect the dns request to necessary port
+            bpf_printk("REDIRECTING THE REQUEST");
+
         }
     }
 
