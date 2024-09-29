@@ -52,10 +52,11 @@ func main() {
 	}
 	defer coll.Close()
 
-	prog := coll.Programs["tc_egress"]
+	prog_egress := coll.Programs["tc_egress_helper"]
+	prog_ingress := coll.Programs["tc_ingress_helper"]
 	service_catalog := coll.Maps["service_catalog"]
-	if prog == nil {
-		panic("No program named 'tc_egress' found in collection")
+	if prog_egress == nil || prog_ingress == nil {
+		panic("No program named 'tc_egress_helper' or 'tc_ingress_helper' found in collection")
 	}
 	if service_catalog == nil {
 		panic("No map named 'service_catalog' found in collection")
@@ -68,13 +69,21 @@ func main() {
 		panic(fmt.Sprintf("Failed to get interface %s: %v\n", iface, err))
 	}
 
-	lnk, err := link.AttachTCX(link.TCXOptions{
+	lnk, _ := link.AttachTCX(link.TCXOptions{
 		Interface: iface_idx.Index,
-		Program:   prog,
+		Program:   prog_egress,
 		Attach:    ebpf.AttachTCXEgress,
 	})
 
 	defer lnk.Close()
+
+	lnk2, _ := link.AttachTCX(link.TCXOptions{
+		Interface: iface_idx.Index,
+		Program:   prog_ingress,
+		Attach:    ebpf.AttachTCXIngress,
+	})
+
+	defer lnk2.Close()
 
 	fmt.Println("Successfully loaded and attached BPF program.")
 
