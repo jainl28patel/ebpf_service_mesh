@@ -1,12 +1,17 @@
-### Custom Docker image
-* To reduce dev latency and install things. Used as base image by all containers
+## Run on Different machines
+
+### Server Agent
 ```bash
-docker pull anakin007/service-mesh:latest
+cd control_plane
+chmod +x server_baremetal.sh
+sudo ./server_baremetal.sh
 ```
 
-### Running the Cluster
+### Client Agent
 ```bash
-docker compose build
-docker compose up
+cd user_proxy
+chmod +x client_baremetal.sh
+export SERVICE_NAME=<NAME> # Unique name to this service / node
+export SERVER_IP=<IP> # IP of consul server
+sudo ./client_baremetal.sh
 ```
-* Docker Network : `service_mesh`
