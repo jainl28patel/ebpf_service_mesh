@@ -16,7 +16,7 @@ services:
 
   service-1:
     build:
-      context: ./xdp_user_proxy
+      context: ./user_proxy
       dockerfile: Dockerfile
     container_name: service1
     environment:
@@ -31,7 +31,7 @@ services:
 
   service-2:
     build:
-      context: ./xdp_user_proxy
+      context: ./user_proxy
       dockerfile: Dockerfile
     container_name: service2
     environment:
@@ -46,7 +46,7 @@ services:
 
   service-3:
     build:
-      context: ./xdp_user_proxy
+      context: ./user_proxy
       dockerfile: Dockerfile
     container_name: service3
     environment:

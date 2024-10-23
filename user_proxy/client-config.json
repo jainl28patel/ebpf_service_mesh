@@ -1,10 +1,10 @@
 {
   "node_name": "${SERVICE_NAME}",
   "server": false,
-  "datacenter": "dc1",
+  "datacenter": "deflectionLB",
   "data_dir": "consul/data",
   "log_level": "DEBUG",
-  "retry_join": ["${SERVER_IP}"],
+  "retry_join": ["server"],
   "service": {
     "id": "${SERVICE_NAME}",
     "name": "${SERVICE_NAME}",
@@ -23,6 +23,11 @@
     {
       "type" : "services",
       "args" : ["/app/inform.sh"]
-    }    
+    },
+    {
+      "type" : "keyprefix",
+      "prefix" : "metric/",
+      "args" : ["/app/metric_update.py"]
+    }
   ]
 }
