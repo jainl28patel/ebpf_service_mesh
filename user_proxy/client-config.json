@@ -4,7 +4,7 @@
   "datacenter": "deflectionLB",
   "data_dir": "consul/data",
   "log_level": "DEBUG",
-  "retry_join": ["server"],
+  "retry_join": ["${SERVER_IP}"],
   "service": {
     "id": "${SERVICE_NAME}",
     "name": "${SERVICE_NAME}",
@@ -16,18 +16,18 @@
       "name": "Consul DNS TCP on port 8600",
       "tcp": "localhost:8600",
       "interval": "10s",
-      "timeout": "1s"
+      "timeout": "2s"
     }
   },
   "watches" : [
     {
       "type" : "services",
-      "args" : ["/app/inform.sh"]
+      "args" : ["/users/anakin/ebpf_service_mesh/user_proxy/inform.sh"]
     },
     {
       "type" : "keyprefix",
       "prefix" : "metric/",
-      "args" : ["/app/metric_update.py"]
+      "args" : ["/users/anakin/ebpf_service_mesh/user_proxy/metric_update.py"]
     }
   ]
 }
