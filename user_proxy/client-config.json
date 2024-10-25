@@ -4,7 +4,7 @@
   "datacenter": "deflectionLB",
   "data_dir": "consul/data",
   "log_level": "DEBUG",
-  "retry_join": ["server"],
+  "retry_join": ["${SERVER_IP}"],
   "service": {
     "id": "${SERVICE_NAME}",
     "name": "${SERVICE_NAME}",
@@ -22,12 +22,12 @@
   "watches" : [
     {
       "type" : "services",
-      "args" : ["/app/inform.sh"]
+      "args" : ["/users/anakin/ebpf_service_mesh/user_proxy/inform.sh"]
     },
     {
       "type" : "keyprefix",
       "prefix" : "metric/",
-      "args" : ["/app/metric_update.py"]
+      "args" : ["/users/anakin/ebpf_service_mesh/user_proxy/metric_update.py"]
     }
   ]
 }
