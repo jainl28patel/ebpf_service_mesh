@@ -10,17 +10,38 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
+func update_kv_store(key string, value string) error {
+
+	// make url
+	url := fmt.Sprintf("http://127.0.0.1:8500/v1/kv/%s", key)
+
+	fmt.Println(url, key)
+	fmt.Println(value)
+
+	// Create a new PUT request with the value as the request body
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(value)))
+	if err != nil {
+		return err
+	}
+
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return nil
+}
+
+// ------------------ CUSTOMIZE : ADD HELPER FUNCTIONS TO UPDATE THE KV-STORE AS PER REQUIREMENT (below is one example) ------------------
+
 // KV-Store naming convection
 // metric/<node-name>/<metric-type>
 // Eg : metric/node1/cpu, metric/node1/memory
 
 func compute_metrics(node_name string) {
-	fmt.Printf("Lets computer metrics in node name ::: ", node_name)
-	urls := []string{
-		fmt.Sprintf("http://127.0.0.1:8500/v1/kv/metric/%s/cpu", node_name),
-		fmt.Sprintf("http://127.0.0.1:8500/v1/kv/metric/%s/memory", node_name),
-	}
-
 	for {
 		percentages, err := cpu.Percent(time.Second, false)
 		if err != nil {
@@ -45,28 +66,10 @@ func compute_metrics(node_name string) {
 
 		fmt.Printf("Memory Utilization: %.2f%%\n", memUtilization)
 
-		update_kv_store(fmt.Sprintf("%f", cpuUtilization), urls[0])
-		update_kv_store(fmt.Sprintf("%f", memUtilization), urls[1])
+		update_kv_store(fmt.Sprintf("metric/%s/cpu", node_name), fmt.Sprintf("%f", cpuUtilization))
+		update_kv_store(fmt.Sprintf("metric/%s/memory", node_name), fmt.Sprintf("%f", memUtilization))
 
 		// Sleep for a bit before the next reading (optional, adjust as needed)
 		time.Sleep(time.Second * 10)
 	}
-}
-
-func update_kv_store(value string, url string) error {
-	// Create a new PUT request with the value as the request body
-	req, err := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(value)))
-	if err != nil {
-		return err
-	}
-
-	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	return nil
 }

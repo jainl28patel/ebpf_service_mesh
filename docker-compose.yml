@@ -6,6 +6,7 @@ services:
     container_name: server
     environment:
       - SERVICE_NAME=server
+      - SERVER_IP=server
     privileged: true
     networks:
       - service_mesh
@@ -21,6 +22,7 @@ services:
     container_name: service1
     environment:
       - SERVICE_NAME=service1
+      - SERVER_IP=server
     privileged: true
     networks:
       - service_mesh
@@ -36,6 +38,7 @@ services:
     container_name: service2
     environment:
       - SERVICE_NAME=service2
+      - SERVER_IP=server
     privileged: true
     networks:
       - service_mesh
@@ -51,6 +54,7 @@ services:
     container_name: service3
     environment:
       - SERVICE_NAME=service3
+      - SERVER_IP=server
     privileged: true
     networks:
       - service_mesh

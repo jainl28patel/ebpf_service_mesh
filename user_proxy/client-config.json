@@ -22,12 +22,12 @@
   "watches" : [
     {
       "type" : "services",
-      "args" : ["/users/anakin/ebpf_service_mesh/user_proxy/inform.sh"]
+      "args" : ["/app/watches_scripts/inform.sh"]
     },
     {
       "type" : "keyprefix",
       "prefix" : "metric/",
-      "args" : ["/users/anakin/ebpf_service_mesh/user_proxy/metric_update.py"]
+      "args" : ["/app/watches_scripts/metric_update.py"]
     }
   ]
 }

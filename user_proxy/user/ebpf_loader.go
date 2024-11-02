@@ -31,7 +31,7 @@ type catalogValue struct {
 	ServiceIP uint32
 }
 
-func ebpf_loader() (*ebpf.Map, error) {
+func ebpf_loader() ([]*ebpf.Map, error) {
 	// Remove resource limits for kernels <5.11.
 	// if err := rlimit.RemoveMemlock(); err != nil {
 	// 	log.Fatal("Removing memlock:", err)
@@ -75,10 +75,14 @@ func ebpf_loader() (*ebpf.Map, error) {
 	fmt.Println("Successfully loaded and attached BPF program.")
 
 	// return the reference to maps and other required information
-	return service_catalog, nil
+	return []*ebpf.Map{service_catalog}, nil
 }
 
-func initialize_maps(service_catalog *ebpf.Map) error {
+func initialize_maps(maps []*ebpf.Map) error {
+
+	// service catalog
+	service_catalog := maps[0]
+
 	// get service catalog and store in ebpf map
 	serviceMap, err := getServiceCatalog()
 
