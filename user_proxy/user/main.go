@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -10,29 +10,43 @@ func main() {
 
 	// get cli arguments
 	node_name := os.Args[1]
-	fmt.Println("Node name : %s", node_name)
+
+	// wait group for go routines
+	var wg sync.WaitGroup
 
 	// Load ebpf program
-	service_catalog, err := ebpf_loader()
+	// ---- CUSTOMIZE ----
+	// implement the ebpf_loader function as per your application requirements
+	// Return Values : array of ebpf map required, Error
+	bpf_maps, err := ebpf_loader()
 	if err != nil {
 		panic("Error in loading ebpf program")
 	}
 
-	// Channel to communicate between goroutines
+	//  OPTIONAL: Channel to communicate between goroutines
 	dataChannel := make(chan Data)
+	wg.Add(1)
+
+	// ---- CUSTOMIZE ----
+	// Add new endpoints to the http server as per user requirements
 	go startServer(dataChannel)
 
 	// sleep until infra sets up
 	time.Sleep(1 * time.Minute)
 
-	// initialize map and other required structure
-	initialize_maps(service_catalog)
+	// ---- CUSTOMIZE ----
+	// implement your logic to insitialize your ebpf maps present in array returned
+	// by the ebpf_loader() function.
+	initialize_maps(bpf_maps)
+
+	// ---- ADDITIONS ----
+	// Add custom go routine to add extra required functionalities
+	// Below is the example that computes and updates the KV Store
 
 	// go routine for regular metric collection and updation in KV Store
+	wg.Add(1)
 	go compute_metrics(node_name)
 
-	// Main goroutine handles data from the channel
-	for {
-
-	}
+	// wait for all go routines to terminate
+	wg.Wait()
 }

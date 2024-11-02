@@ -54,7 +54,7 @@ rm client-config-temp-new.json
 # mount /sys/fs/bpf
 sudo mount -t bpf bpf /sys/fs/bpf/ || die "Unable to mount /sys/fs/bpf inside test environment"
 
-# Load XDP program here / Start GO client agent
+# Load eBPF program here / Start GO client agent
 sudo ./user/user-agent "$SERVICE_NAME" > /tmp/gologs_"$SERVICE_NAME".logs 2>&1 &
 
 # Start Consul Client agent
