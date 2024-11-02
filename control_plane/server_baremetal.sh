@@ -18,4 +18,4 @@ wget https://releases.hashicorp.com/consul/1.19.1/consul_1.19.1_linux_amd64.zip
 unzip consul_1.19.1_linux_amd64.zip
 sudo mv ./consul /usr/bin
 
-consul agent -config-file=./server-config.json > /tmp/consul-server.log
+consul agent -config-file=./server-config.json > consul-server.log
