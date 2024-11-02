@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// Consul Helper Functions
 func getServiceCatalog() (map[string]ServiceInfo, error) {
 	// Make the initial GET request to fetch the service catalog
 	res, err := http.Get("http://127.0.0.1:8500/v1/catalog/services")

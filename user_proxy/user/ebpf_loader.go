@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
 
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
@@ -32,10 +31,7 @@ type catalogValue struct {
 	ServiceIP uint32
 }
 
-func main() {
-	// Channel to communicate between goroutines
-	dataChannel := make(chan Data)
-
+func ebpf_loader() ([]*ebpf.Map, error) {
 	// Remove resource limits for kernels <5.11.
 	// if err := rlimit.RemoveMemlock(); err != nil {
 	// 	log.Fatal("Removing memlock:", err)
@@ -68,7 +64,7 @@ func main() {
 		panic(fmt.Sprintf("Failed to get interface %s: %v\n", iface, err))
 	}
 
-	lnk, err := link.AttachTCX(link.TCXOptions{
+	lnk, _ := link.AttachTCX(link.TCXOptions{
 		Interface: iface_idx.Index,
 		Program:   prog,
 		Attach:    ebpf.AttachTCXEgress,
@@ -78,14 +74,21 @@ func main() {
 
 	fmt.Println("Successfully loaded and attached BPF program.")
 
-	// Start the server in a goroutine
-	go startServer(dataChannel)
+	// return the reference to maps and other required information
+	return []*ebpf.Map{service_catalog}, nil
+}
 
-	// sleep until infra sets up
-	time.Sleep(1 * time.Minute)
+func initialize_maps(maps []*ebpf.Map) error {
+
+	// service catalog
+	service_catalog := maps[0]
 
 	// get service catalog and store in ebpf map
 	serviceMap, err := getServiceCatalog()
+
+	if err != nil {
+		fmt.Errorf("Error in fetching service catalog")
+	}
 
 	// DEBUG := Print the service map
 	for serviceName, info := range serviceMap {
@@ -95,7 +98,7 @@ func main() {
 		ip := net.ParseIP(info.Address).To4()
 		if ip == nil {
 			fmt.Println("Invalid IP address")
-			return
+			continue
 		}
 		serviceIP := binary.BigEndian.Uint32(ip) // Convert IP to uint32 in network byte order
 
@@ -124,7 +127,7 @@ func main() {
 		// Convert the service name (key) to a Go string
 		serviceName := string(key.Hostname[:])
 		// Null terminate the service name if there are extra zeros
-		serviceName = serviceName[:len(serviceName)-len(serviceName)+int(len(serviceName[:]))]
+		serviceName = serviceName[:int(len(serviceName[:]))]
 
 		// Print the service name and IP
 		fmt.Printf("Service: %s, IP Address: %d\n", serviceName, value.ServiceIP)
@@ -132,11 +135,8 @@ func main() {
 
 	// Check if there was an error during iteration
 	if err := iterator.Err(); err != nil {
-		log.Fatalf("Failed to iterate over map: %v", err)
+		log.Printf("Failed to iterate over map: %v", err)
 	}
 
-	// Main goroutine handles data from the channel
-	for {
-
-	}
+	return nil
 }

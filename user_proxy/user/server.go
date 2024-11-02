@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ----- Add new routes and other required functionalities in http server below ----
+
 // Function to start the Gin server
 func startServer(dataChannel chan Data) {
 	r := gin.Default()
