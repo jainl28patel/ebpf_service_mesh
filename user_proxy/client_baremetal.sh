@@ -55,10 +55,10 @@ rm client-config-temp-new.json
 sudo mount -t bpf bpf /sys/fs/bpf/ || die "Unable to mount /sys/fs/bpf inside test environment"
 
 # Load eBPF program here / Start GO client agent
-sudo ./user/user-agent "$SERVICE_NAME" > /tmp/gologs_"$SERVICE_NAME".logs 2>&1 &
+sudo ./user/user-agent "$SERVICE_NAME" > ./gologs_"$SERVICE_NAME".logs 2>&1 &
 
 # Start Consul Client agent
-consul agent -config-file=./client-config-new.json > /tmp/consul-client.log 2>&1 &
+consul agent -config-file=./client-config-new.json > ./consul-client.log 2>&1 &
 
 # Run exe / userspace program
 ./user/udp_echo_server &

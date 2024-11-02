@@ -37,7 +37,7 @@ func ebpf_loader() ([]*ebpf.Map, error) {
 	// 	log.Fatal("Removing memlock:", err)
 	// }
 
-	spec, err := ebpf.LoadCollectionSpec("/app/kernel/xdp_main")
+	spec, err := ebpf.LoadCollectionSpec("/users/anakin/ebpf_service_mesh/user_proxy/kernel/xdp_main")
 	if err != nil {
 		panic(err)
 	}
